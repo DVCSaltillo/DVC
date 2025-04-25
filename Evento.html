@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>DVC Saltillo</title>
+  <style>
+    body {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f0f0f0;
+    }
+
+    .invisible-button-container {
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 300px;
+      height: 400px;
+    }
+
+    .invisible-button {
+      background: transparent;
+      border: none;
+      width: 100%;
+      height: 100%;
+      cursor: pointer;
+    }
+
+    #contenedor-botones {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 80px;
+  max-width: 80%;
+}
+    .boton-animado {
+  opacity: 0;
+  transform: translateY(20px);
+  padding: 20px 50px;
+  font-size: 24px;
+  border: none;
+  background: linear-gradient(135deg, #6a11cb, #2575fc); /* Degradado moderno */
+  color: white;
+  border-radius: 16px;
+  cursor: pointer;
+  margin: 20px 0;
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.15);
+  transition: all 4s ease;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.boton-animado:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.2);
+  background: linear-gradient(135deg, #8341e6, #3b88ff);
+}
+
+
+
+    .boton-animado:disabled {
+      opacity: 0.6;
+      background-color: #999;
+      cursor: not-allowed;
+    }
+
+    .visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .finalizar {
+  background-color: #6a0ec1 !important;
+  border-radius: 14px;
+  padding: 15px 30px;
+  font-size: 20px;
+  font-weight: bold;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+  border: none;
+  margin-top: 40px; /* separarlo de los botones anteriores */
+  width: auto;
+  align-self: center;
+}
+    .flecha {
+      display: inline-block;
+      animation: moverFlecha 1s infinite alternate;
+    }
+
+    @keyframes moverFlecha {
+      from {
+        transform: translateX(0);
+      }
+      to {
+        transform: translateX(10px);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <link rel="stylesheet" href="Evento.css">
+
+  <div class="invisible-button-container">
+    <button class="invisible-button" onclick="window.location.href='index2.html';"></button>
+  </div>
+
+  <div id="contenedor-botones">
+   <!-- Botón principal SIN la clase 'visible' -->
+   <button class="boton-animado" id="botonPrincipal" onclick="window.location.href='https://ejemplo.com/josue1'">
+    Josue 1
+  </button>
+  </div>
+
+  <script>
+    const nombresBotones = [
+  { nombre: "Josue 1", url: "https://ejemplo.com/josue1" },
+  { nombre: "Josue 2", url: "https://ejemplo.com/josue2" },
+  { nombre: "Siguiente", url: "index2.html" }
+  ];
+
+    // Mostrar el botón principal al cargar con un pequeño retardo
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('botonPrincipal').classList.add('visible');
+  }, 10); // 10ms para permitir que los estilos se apliquen y animen
+});
+let indice = 0;
+let ultimoBotonActivo = document.getElementById('botonPrincipal');
+
+document.body.addEventListener('click', function (event) {
+  if (event.target.tagName.toLowerCase() === 'button') return;
+  if (indice >= nombresBotones.length) return;
+
+  const { nombre, url } = nombresBotones[indice];
+  const nuevoBoton = document.createElement('button');
+  nuevoBoton.className = 'boton-animado';
+
+  if (nombre === "Siguiente") {
+    nuevoBoton.classList.add('finalizar');
+    nuevoBoton.innerHTML = 'Siguiente <span class="flecha">➡️</span>';
+  } else {
+    nuevoBoton.innerText = nombre;
+  }
+
+  nuevoBoton.onclick = () => window.location.href = url;
+
+  if (nombre === "Siguiente") {
+  const contenedorFinal = document.createElement('div');
+  contenedorFinal.style.width = "100%";
+  contenedorFinal.style.display = "flex";
+  contenedorFinal.style.justifyContent = "center";
+  contenedorFinal.appendChild(nuevoBoton);
+  document.getElementById('contenedor-botones').appendChild(contenedorFinal);
+} else {
+  document.getElementById('contenedor-botones').appendChild(nuevoBoton);
+}
+  setTimeout(() => nuevoBoton.classList.add('visible'), 10);
+
+  if (ultimoBotonActivo) {
+    ultimoBotonActivo.disabled = true;
+  }
+
+  ultimoBotonActivo = nuevoBoton;
+  indice++;
+});
+  </script>
+
+</body>
+</html>

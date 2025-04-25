@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Checkpoint Prioridades</title>
+
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.29/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px 40px;
+            background: #f5f5f5;
+            margin: 0;
+            display: block;
+        }
+
+        #contenedor {
+            max-width: 800px;
+            margin-left: 0;
+        }
+
+        h1,
+        h2 {
+            color: white;
+            font-weight: bold;
+            padding: 10px;
+            border-radius: 8px;
+        }
+
+        .task {
+            margin-bottom: 10px;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            display: grid;
+            grid-template-columns: 20px 1fr 150px 1fr 50px;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .status {
+            width: 20px;
+            height: 20px;
+            font-size: 1.2em;
+            cursor: pointer;
+            text-align: center;
+            line-height: 20px;
+        }
+
+        .green {
+            color: green;
+        }
+
+        .gray {
+            color: gray;
+        }
+
+        .responsable {
+            padding: 4px;
+        }
+
+        input[type="text"] {
+            padding: 4px;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 4px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            resize: vertical;
+        }
+
+        button {
+            padding: 6px 12px;
+            margin-top: 10px;
+            margin-right: 5px;
+        }
+
+        /* Estilos para la notificación con animación */
+        #notification {
+            background: #4caf50;
+            color: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+            opacity: 0;
+            transition: opacity 0.5s ease-in-out;
+        }
+
+        #notification.show {
+            opacity: 1;
+        }
+
+        #exportPdfBtn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 16px;
+            background-color: #1130e1;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            z-index: 999;
+        }
+
+        #exportPdfBtn:hover {
+            background-color: #1365d7;
+        }
+
+        .invisible-button-container {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 200px;
+        }
+
+        .invisible-button {
+            background: transparent;
+            border: none;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+
+        /* Incrustar el archivo en el lado derecho */
+        #embedded-file {
+            position: fixed;
+            top: 200px;
+            right: 20px;
+            width: 380px;
+            height: 500px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+            transition: transform 0.3s ease-in-out, top 0.3s ease-in-out, left 0.3s ease-in-out;
+        }
+
+        #embedded-file:hover {
+            transform: scale(1.3); /* Slightly reduced scale */
+            z-index: 1000;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(1.3); /* Adjusted translate */
+            width: 60%; /* Target 80% width */
+            height: 60%; /* Target 80% height */
+        }
+    </style>
+    <link rel="stylesheet" href="Checkpoint.css">
+</head>
+
+<body>
+
+    <div class="invisible-button-container">
+        <button class="invisible-button" onclick="window.location.href='index2.html';"></button>
+    </div>
+
+    <button id="exportPdfBtn" onclick="exportToPDF()">📄 Exportar a PDF</button>
+
+    <h1>Prioridades por Plataforma</h1>
+
+    <div id="notification">
+        ✅ Cambios guardados en la nube
+    </div>
+
+    <iframe id="embedded-file"
+        src="https://app.powerbi.com/reportEmbed?reportId=2ba9c970-0d4c-4e35-a2ea-52d6d5c0844c&autoAuth=true&ctid=42cc3295-cd0e-449c-b98e-5ce5b560c1d3"></iframe>
+
+    <div id="contenedor">
+        <div>
+            <h2>Maíz 🌽</h2>
+            <div class="platform-container" id="list-Maíz"></div>
+            <button onclick="addTask('Maíz')">➕ Agregar tarea</button>
+        </div>
+        <div>
+            <h2>Papa 🥔</h2>
+            <div class="platform-container" id="list-Papa"></div>
+            <button onclick="addTask('Papa')">➕ Agregar tarea</button>
+        </div>
+        <div>
+            <h2>Extruidos 🍿</h2>
+            <div class="platform-container" id="list-Extruidos"></div>
+            <button onclick="addTask('Extruidos')">➕ Agregar tarea</button>
+        </div>
+    </div>
+
+    <script>
+        // Configuración de Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyBQIrh1m_0BhpNWm3vF-LhHEdtLWVRm2dk",
+            authDomain: "prioridades-75285.firebaseapp.com",
+            projectId: "prioridades-75285",
+            storageBucket: "prioridades-75285.firebasestorage.app",
+            messagingSenderId: "668455005662",
+            appId: "1:668455005662:web:2da0c36b7adc85d537414f",
+            measurementId: "G-DFSFTM2R7E",
+            databaseURL: "https://prioridades-75285-default-rtdb.firebaseio.com/"
+        };
+
+        // Inicializar Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Definir las plataformas a usar
+        const platforms = ["Maíz", "Papa", "Extruidos"];
+        let saveTimeout;
+
+        const createTask = (tarea = "", responsable = "", comentarios = "", realizado = false) => {
+            const div = document.createElement("div");
+            div.className = "task";
+
+            // Campo de texto para la tarea
+            const input = document.createElement("input");
+            input.type = "text";
+            input.value = tarea;
+            input.placeholder = "Tarea";
+
+            input.addEventListener("keydown", (e) => {
+                if (e.key === "Enter") {
+                    saveData();
+                }
+            });
+
+            // Campo de texto para el responsable
+            const responsableInput = document.createElement("input");
+            responsableInput.type = "text";
+            responsableInput.className = "responsable";
+            responsableInput.placeholder = "Responsable";
+            responsableInput.value = responsable;
+
+            // Campo de texto para los comentarios
+            const commentsInput = document.createElement("textarea");
+            commentsInput.placeholder = "Comentarios";
+            commentsInput.value = comentarios;
+
+            // Indicador de estado (realizado o pendiente)
+            const statusDot = document.createElement("div");
+            statusDot.className = "status";
+            statusDot.textContent = realizado ? "✅" : "⏳"; // Using checkmark and hourglass
+            statusDot.classList.add(realizado ? "green" : "gray"); // Apply color
+            statusDot.onclick = () => {
+                statusDot.textContent = statusDot.textContent === "⏳" ? "✅" : "⏳";
+                statusDot.classList.toggle("green");
+                statusDot.classList.toggle("gray");
+                saveData();
+            };
+
+            // Botón para eliminar la tarea individualmente
+            const deleteBtn = document.createElement("button");
+            deleteBtn.textContent = "🗑️";
+            deleteBtn.style.marginLeft = "auto";
+            deleteBtn.style.background = "transparent";
+            deleteBtn.style.border = "none";
+            deleteBtn.style.cursor = "pointer";
+            deleteBtn.style.fontSize = "18px";
+
+            deleteBtn.onclick = () => {
+                if (confirm("¿Deseas eliminar esta tarea?")) {
+                    div.remove();
+                    saveData();
+                }
+            };
+
+            div.appendChild(statusDot);
+            div.appendChild(input);
+            div.appendChild(responsableInput);
+            div.appendChild(commentsInput);
+            div.appendChild(deleteBtn);
+
+            return div;
+        };
+
+        // Función para agregar una nueva tarea a una plataforma
+        const addTask = (platform) => {
+            const list = document.getElementById(`list-${platform}`);
+            list.appendChild(createTask());
+        };
+
+        // Función para guardar datos en Firebase con debounce
+        const saveData = () => {
+            clearTimeout(saveTimeout);
+            saveTimeout = setTimeout(() => {
+                const data = {};
+                platforms.forEach(platform => {
+                    const list = document.getElementById(`list-${platform}`);
+                    const tasks = list.querySelectorAll(".task");
+                    data[platform] = [];
+                    tasks.forEach(task => {
+                        const tarea = task.querySelector("input[type='text']").value;
+                        const responsable = task.querySelector(".responsable").value || "Sin responsable";
+                        const comentarios = task.querySelector("textarea").value || "";
+                        const statusDot = task.querySelector(".status");
+                        const estado = statusDot.textContent === "✅" ? "realizado" : "pendiente";
+                        data[platform].push({ tarea, responsable, comentarios, estado });
+                    });
+                });
+                db.ref("prioridades").set(data).then(() => {
+                    showNotification();
+                });
+            }, 500);
+        };
+
+        // Función para cargar datos en tiempo real desde Firebase
+        const loadData = () => {
+            db.ref("prioridades").on("value", (snapshot) => {
+                const data = snapshot.val() || {};
+                platforms.forEach(platform => {
+                    const list = document.getElementById(`list-${platform}`);
+                    list.innerHTML = "";
+                    if (data[platform]) {
+                        data[platform].forEach(item => {
+                            const taskDiv = createTask(item.tarea, item.responsable, item.comentarios, item.estado === "realizado");
+                            list.appendChild(taskDiv);
+                        });
+                    }
+                });
+            });
+        };
+
+        // Función para mostrar notificación con animación
+        const showNotification = () => {
+            const notif = document.getElementById("notification");
+            notif.classList.add("show");
+            setTimeout(() => {
+                notif.classList.remove("show");
+            }, 2000);
+        };
+
+        // Cargar datos en tiempo real al iniciar la página
+        window.onload = loadData;
+
+        const exportToPDF = () => {
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const fecha = new Date().toLocaleDateString("es-MX", {
+                weekday: "long",
+                year: "numeric",
+                month: "long",
+                day: "numeric"
+            });
+
+            // Título y fecha
+            doc.setFontSize(18);
+            doc.text("Reporte de Prioridades por Plataforma", 14, 15);
+            doc.setFontSize(11);
+            doc.text(`Fecha: ${fecha}`, 14, 23);
+
+            let y = 30;
+
+            platforms.forEach(platform => {
+                const list = document.getElementById(`list-${platform}`);
+                const rows = [];
+
+                const tasks = list.querySelectorAll(".task");
+                tasks.forEach(task => {
+                    const tarea = task.querySelector("input[type='text']").value || "(Sin tarea)";
+                    const responsable = task.querySelector(".responsable").value || "Sin responsable";
+                    const comentarios = task.querySelector("textarea").value || "(Sin comentarios)";
+                    const estadoRealizado = task.querySelector(".status").textContent === "✅";
+
+                    rows.push([
+                        { content: tarea },
+                        { content: responsable },
+                        { content: comentarios },
+                        {
+                            content: estadoRealizado ? "Realizado" : "Pendiente",
+                            styles: {
+                                textColor: estadoRealizado ? [0, 128, 0] : [200, 0, 0] // Verde o rojo
+                            }
+                        }
+                    ]);
+                });
+
+                if (rows.length > 0) {
+                    doc.setFontSize(13);
+                    doc.text(`${platform}`, 14, y);
+                    doc.autoTable({
+                        startY: y + 4,
+                        head: [["Tarea", "Responsable", "Comentarios", "Estado"]],
+                        body: rows,
+                        theme: "grid",
+                        styles: { fontSize: 10 },
+                        headStyles: { fillColor: [33, 150, 243] }
+                    });
+                    y = doc.lastAutoTable.finalY + 10;
+                }
+            });
+
+            doc.save("Prioridades.pdf");
+        };
+
+    </script>
+</body>
+
+</html>

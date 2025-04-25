@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>Calculadora de Costos</title>
+  <style>
+
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background-color: #f5f5f5;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .container {
+      margin-top: 200px;
+      max-width: 800px;
+      max-height: 800px;
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    input[type="text"], input[type="number"], select, button {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      font-size: 16px;
+    }
+
+    button {
+      background-color: #007bff;
+      color: white;
+      cursor: pointer;
+      border: none;
+    }
+    button:hover {
+      background-color: #0056b3;
+    }
+    #resultado {
+      font-weight: bold;
+      text-align: center;
+      font-size: 22px;
+      margin-top: 10px;
+      color: rgb(214, 9, 9);
+    }
+    .seleccionado {
+      border: 2px solid #007bff !important;
+      background-color: #e6f0ff !important;
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+    .modo-opciones label {
+      display: inline-block;
+      margin-right: 10px;
+      cursor: pointer;
+    }
+    .modo-opciones input[type="radio"] {
+      margin-right: 5px;
+    }
+    .sugerencia-item.resaltado {
+      background-color: #007bff;
+      color: white;
+    }
+
+    .play6 {
+            position: absolute; /* Posiciona la imagen dentro del contenedor */
+            width: 80px;
+            height: 70px;
+            top: 10%; /* Centra verticalmente */
+            left: 5%; /* Centra horizontalmente */
+            transform: translate(-50%, -50%); /* Ajusta el centrado */
+            cursor: pointer; /* Cambia el cursor a una mano al pasar por encima */
+           
+        }
+
+        .play7 {
+            position: absolute; /* Posiciona la imagen dentro del contenedor */
+            width: 80px;
+            height: 70px;
+            top: 10%; /* Centra verticalmente */
+            left: 95%; /* Centra horizontalmente */
+            transform: translate(-50%, -50%); /* Ajusta el centrado */
+            cursor: pointer; /* Cambia el cursor a una mano al pasar por encima */
+           
+        }
+  </style>
+</head>
+<body>
+
+
+  <link rel="stylesheet" href="Calcular.css">
+
+  <img class="play7" src="Imagenaes/Right Next.gif" alt="boton-5">
+  <a href="https://pepsico.sharepoint.com/:x:/r/sites/MCTSALTILLO/_layouts/15/Doc.aspx?sourcedoc=%7BE7D3AF3F-12C5-4BD6-9840-97E48C204762%7D&file=Acorde%C3%B3n%20Planta%20Saltillo.xlsx&action=default&mobileredirect=true"  class="play7" target="_blank" ></a>
+
+  <img class="play6" src="Imagenaes/Arrow_Back.gif" alt="boton-5">
+  <a href="index2.html"  class="play6" ></a>
+
+  <div class="container">
+    <h2>Selecciona el modo de cálculo</h2>
+    <div class="modo-opciones">
+      <label><input type="radio" name="modo" value="tiempo"> Tiempo Muerto</label>
+      <label><input type="radio" name="modo" value="kg"> Desperdicio Kg</label>
+      <label><input type="radio" name="modo" value="pnc"> Costo PNC</label>
+    </div>
+
+    <div id="modo-tiempo" style="display: none;">
+      <h3>Línea y Horas</h3>
+      <select id="linea">
+        <option value="19279.94">PC50</option>
+        <option value="99582.56">CKF100</option>
+        <option value="108992.05">Kettle</option>
+        <option value="48020.89">DT3000</option>
+        <option value="66996.58">DT3000</option>
+        <option value="49787.99">DT3001</option>
+        <option value="63730.52">DT3002</option>
+        <option value="21381.89">DT3003</option>
+        <option value="54019.62">Fritos</option>
+        <option value="19279.94">Chetos</option>
+        <option value="35990.78">QSB</option>
+        <option value="20258.51">Churro</option>
+        <option value="20152.1">PL/CE</option>
+        <option value="136399.36">Deck1</option>
+        <option value="159950.49">Deck2</option>
+        <option value="192279.94">Deck3</option>
+        <option value="201052.53">Deck4</option>
+        <option value="172722.57">Deck5</option>
+      </select>
+      <input type="number" id="horas" placeholder="Horas de paro">
+      <button id="calcular-tiempo">Calcular Costo por Tiempo</button>
+    </div>
+
+    <div id="modo-kg" style="display: none;">
+      <h3>Selecciona un producto</h3>
+      <input type="text" id="filtro" placeholder="Buscar producto...">
+      <div id="sugerencias" style="position: relative; background: white; border: 1px solid #ccc; border-radius: 4px; max-height: 150px; overflow-y: auto;"></div>
+      <label for="factor">Ingresa kilos desperdiciados:</label>
+      <div style="display: flex; align-items: center;">
+        <input type="number" id="factor" placeholder="Ej. 1.5" style="flex: 1;">
+        <span style="margin-left: 8px;">Kg</span>
+      </div>
+      <button id="calcular-kg">Calcular Costo por Desperdicio</button>
+    </div>
+
+    <div id="modo-pnc" style="display: none;">
+      <h3>Selecciona un producto para calcular PNC</h3>
+      <input type="text" id="filtro-pnc" placeholder="Buscar producto...">
+      <div id="sugerencias-pnc" style="position: relative; background: white; border: 1px solid #ccc; border-radius: 4px; max-height: 150px; overflow-y: auto;"></div>
+      <label for="tarimas">Número de tarimas:</label>
+      <input type="number" id="tarimas" placeholder="Ej. 3">
+      <button id="calcular-pnc">Calcular Costo PNC</button>
+    </div>
+
+    <div id="resultado"></div>
+  </div>
+
+
+
+  <script>
+
+const productosPNC = [
+["Producto A PNCRUFFLES QUESO HBSF2 280GRX9X1", 16925],
+["RUFFLES QUESO HBSF2 41GRX50X1",16702], ["RUFFLES Q COMP HBSF2 120GRX20X1", 16217 ],
+["RUFFLES QUESO MYR HBSF2 45GRX50X1",15662],["RUFFLES QUESO SS HBSF2 539GRX4X1", 14437],
+["RUFFLES MC SR HBSF HPP 42GRX50X1",14197],["RUFFLES QUESO HBSF2 185GRX10X1", 13461],
+["SABRITAS RC JAL HBSF 57GRX50X1", 13181],["RUFFLES QUEMINIHBSF2 20GRX90X1", 12927],
+["RUFFLES MC SR HBSF 185GRX10X1", 12754],["SABRITAS RC FH HBSF 57GRX50X1", 12250],
+["SABRITAS C&E LL2 HBSF 255GRX7X1", 12245],["SABRITAS RC SAL HBSF 57GRX50X1", 12186],
+["RUFFLES QUE MAX HBSF 61GRX28X1", 12108],["RECETA CRJ FH HB 100GRX25X1", 11253 ],
+["SABRITAS CYE HBSF 160GRX10X1", 11249],["RUFFLES QUESO BOT HBSF2 66GRX25X1", 11162],
+["DORITOS DINAM FH HBSF2 305GRX15X1", 11008],["RUFFLES QUESO GD 48GRX50X1", 10612],
+["SABRITAS RC JAL HBSF HPP 41GRX50X1", 10493],["SABRITAS RCRUJ SAL RS 41GRX50X1", 10287],
+["SABRITAS RC FH 41GRX50X1", 9797],["SABRITONES PAPA PICOSITA HBSF 90GRX25X1", 9777],
+["RUFFLES QUE GD HBSF GU 51GRX50X1", 9696],["MI CARRITO PICOSITAS WHSL HBSF 90GRX25X1", 9656],
+["MI CARRITO PICOSITAS HBSF 90GRX25X1", 9656],["SABRITONES PAPA PICOSITA HBSF 40GRX50X1", 9562],
+["SABRITAS CYE HBSF GU 48GRX50X1", 9531],["SABRITONES PAPA SAL HBSF 90GRX25X1", 9524],
+["RUFFLES MIX HBSF HPP 45GRX50X1", 9438],["MI CARRITO SAL HBSF 90GRX25X1", 9403],
+["SABRITAS LIMON HBSF GUP 46GRX50X1", 9376],["SABRITONES PAPA SAL HBSF 40GRX50X1", 9337],
+["RUFFLES SAL HBSF GU 51GRX50X1", 9337],["RUFFLES QUE HBSF BZZ GD 88GRX24X1", 9293],
+["RUFFLES MC JAL HBSF HPP 42GRX50X1", 9224],["SABRITAS ADOB HBSF2 GU 48GRX50X1", 9109],
+["RUFFLES SAL COMPA HB 120GRX20X1", 8919],["SABRITAS CYE GD 44GRX50X1", 8700],
+["RUFFLES SAL GD HBSF2 48GRX50X1", 8696],["DORITOS DINAM FH HBSF 220GRX16X1", 8660],
+["SABRITAS RC FH HBSF GU 81GRX24X1", 8604],["SABRITAS LIMON GD1 42GRX50X1",  8540],
+["DORITOS DINAM FH HBSF RS 70GRX50X1", 8526 ],["CHEETOS TORCIDITO HBSF 58GRX60X1", 8499],
+["RUFFLES QUE FSTN DSD HBSF 278GRX8X1", 8497],["RUFFLES MIX HBSF 70GRX30X1", 8382],
+["DORITOS DINAM HBSF 220GRX16X1", 8377],["SABRITAS XFH RC FSTN DSD HB 240GRX8X1", 8297],
+["RUFFLES MC JAL HSBF 185GRX10X1", 8281],["DORITOS DINAM HBSF RS 70GRX50X1", 8221],
+["RUFFLES MC FH HBSF 185GRX10X1", 8217],["SABRITAS ADOB HBSF FUP 105GRX20X1", 8121],
+["SABRITAS HAB HBSF GU 48GRX50X1", 8090],["NO USAR", 8039],
+["DORITOS INCOG HBSF 223GRX10X1", 7906],["SABRITAS SAL RC FSTN DSD HB 240GRX8X1", 7906],
+["DORITOS INCOGNITA HBSF 61GRX50X1", 7903],["CHEETOS TOR BTT HBSF 90GRX35X1", 7895],
+["SABRITAS SAL RC FSTN RTD HB 240GRX8X1", 7873],["CHEETOS XFH HBSF 58GRX60X1", 7872],
+["DORITOS PIZZ HBSF 223GRX10X1", 7871],["SABRITAS RC CR HB2 160GRX10X1", 7835],
+["PAKETAXO QUE HBSF MEP 70GRX28X1", 7807],["DORITOS PIZZEROLA HBSF 61GRX50X1", 7783],
+["SABRITAS RC JAL HB2 RV 160GRX10X1", 7554],["TOSTITOS SV HBSF GD 62GRX50X1", 7546],
+["TOSTITOS SV HBSF GD 62GRX50X1", 7546],["CHEETOS XFH BTT HBSF RS 90GRX35X1", 7491],
+["CRUJITOS QUESO HBSF GU 45GRX50X1", 7469],["DORITOS INCOGNITA HBSF GD 58GRX50X1", 7450],
+["SABRITAS SAL HBSF GUP 46GRX50X1", 7442],["CHEETOS TOR MAX HBSF 82GRX35X1", 7428],
+["SABRITAS SAL PRA HB 42GRX50X1", 7411],["DORITOS NACHO NT HBSF2 61GRX50X1", 7382],
+["DORITOS DINAM FH BZZ HBSF RL 125GRX24X1", 7373],["SABRITAS HAB GD 44GRX50X1", 7373],
+["TOSTITOS SV GD REC HBSF 55GRX50X1", 7371],["TOSTITOS SV GD REC HBSF 55GRX50X1", 7371],
+["RUFFLES MIX HBSF 170GRX10X1", 7337],["DORITOS PIZZEROLA HBSF GD 58GRX50X1", 7335],
+["SABRITAS RC SAL RS 160GRX10X1", 7316],["SABRITAS RC FH HB2 RV 160GRX10X1", 7212],
+["PAKETAXO QUEXO HBSF2 208GRX9X1", 7209],["CHEETOS TOR FSTN DSD HBSF 360GRX8X1", 7166],
+["TOSTITOS SV GD HBSF RS 57GRX50X1", 7148],["CHEETOS TOR FAM HBSF 240GRX12X1", 7125],
+["SABRITAS SAL PK HBSF2 40GRX50X1", 7122],["CRUJITOS COMP HBSF 120GRX17X1", 7045],
+["DORITOS DIN FH BZZ HBSF 120GRX24X1", 7003],["DORITOS DINAM FH HBSF 50GRX50X1", 6926],
+["SABRITAS ADO LL2 HBSF FUP 255GRX7X1", 6900],["TOSTITOS SV BZZ HBSF RS 120GRX24X1", 6897],
+["RUFFLES SAL FAM RS HBSF2 PRA 185GRX10X1", 6895],["SABRITAS SAL GD 42GRX50X1", 6863],
+["SABRITAS SAL HB 340GRX6X1", 6838],["CHEETOS TORC BZZ 115GRX24X1", 6778],
+["CHEETOS POFFS BR HBSF 44GRX50X1", 6744],["DORITOS NACHO HBSF GD 58GRX50X1", 6722],
+["DORITOS DINAM CHL HBSF RS 50GRX50X1", 6700],["SABRITAS LIM HBSF PRA RS 160GRX10X1", 6662],
+["CHEETOS POFFS BR MB NV 44GRX50X1", 6637],["CHEETOS XFH FSTN DSD HBSF 360GRX8X1", 6621],
+["SABRITAS SAL HBSF 105GRX20X1", 6588 ],["CHEETOS XFH FAM HBSF RS 240GRX12X1", 6585],
+["DORITOS NACHO HBSF 61GRX50X1", 6570],["TOSTITOS FH REC HBSF 55GRX50X1", 6564],
+["TOSTITOS SV BZZ HBSF 115GRX24X1", 6553],["TOSTITOS SV BZZ HBSF 115GRX24X1", 6553],
+["TOSTITOS XFH HBSF GD2 62GRX50X1", 6455],["TOSTITOS SV FAM HBSF RS 240GRX11X1", 6382],
+["TOSTITOS SV FAM HBSF RS 240GRX11X1", 6382],["SABRITAS ADOB HBSF FUP 64GRX25X1", 6348],
+["DORITO NACHO LL2 HB2 340GRX8X1", 6333],["CHEETOS XFH HBSF RS 120GRX24X1", 6309],
+["CHEETOS BOLITA HBSF 46GRX50X1", 6229],["SABRITAS ADOB HBSF FUP 160GRX10X1", 6228],  
+["DORITOS NACHO FSTN DSD HBSF 335GRX8X1", 6219],["CHEETOS POFFS REVAMP 270GX7X1", 6213],
+["TOSTITOS FH RS HBSF 120GRX24X1", 6145],["TOSTITOS SV COMP HBSF RS 175GRX14X1", 6139],
+["CHEETOS BOLITA MB RS NV 46GRX50X1", 6114],["DORITOS NACH BZZ HBSF 105GRX24X1", 6089],
+["SABRITAS SAL HBSF GU 78GRX24X1", 6076],["CHEETOS XFH BZZ 115GRX24X1", 6069],
+["SABRITAS SAL MINI HBSF 18GRX90X1", 6033 ],["SABRITAS SAL MINI HBSF OT 18GRX90X1", 6033],
+["DORITOS NACHO SS HBSF2 650GRX4X1", 5939],["SABRITAS ADOB MAX HBSF FUP 57GRX26X1", 5890],
+["SABRITAS SAL LL2 HBSF 255GRX7X1", 5880],["CHEETOS POFFS HB2 110GRX17X1", 5865],
+["TOSTITOS FH BZZ HBSF 115GRX24X1", 5820],["PAKETAXO MEZ HBSF 62GRX26X1", 5744],
+["PAKETAXO QUEX TR HBSF 300GRX5X1", 5744],["CHURRUMAIS LIMON GD 185GRX15X1", 5736],
+["DORITOS NACHO BZZ HBSF 100GRX24X1", 5732],["SABRITAS SAL BZZ HBSF GU 74GRX24X1", 5709],
+["TOSTITOS FH RS HBSF 240GRX11X1", 5632],["FRITOS SAL HBSF 38GRX64X1", 5595],
+["DORITOS FLAMIN HOT HBSF RS 61GRX50X1", 5539],["SABRITAS SAL FSTN DSD HBSF 240GRX7X1", 5537],
+["CHURRUMAIS LIMON HBSF2 185GRX15X1", 5480],["DORITOS XTRA FH HBSF GD 58GRX50X1", 5448],
+["DORITOS NACHO MAX HBSF 76GRX28X1", 5418],["SABRITAS SAL HBSF 171GRX10X1", 5366],
+["CHURRUMAIS FLAMIN HOT MB 70GRX32X1", 5330],["SABRITAS SAL HBSF 160GRX10X1", 5323],
+["TOSTITOS XFH HBSF RS 175GRX14X1", 5304],["RANCHERITOS HBSF MAQ RS 40GRX60X1", 5279],
+["CHEE PALOM POP HB2 29GRX54X1", 5263],["PAKETAXO QUEXO MB 38GRX50X1", 5252], 
+["SABRITAS SAL BOT HBSF 64GRX25X1", 5251],["CHEETOS TOR COMP GD 145GRX14X1", 5219],
+["DORITOS NACHOOTHBSF2 23GRX81X1", 5178],["PAKETAXO MEZ HBSF2 RS2 265GRX8X1", 5161],
+["TOSTITOS NACHO HB 4000GRX1X1", 5159],["CHEETOS BOLITAS MB RS NV 110GRX17X1", 5159],
+["CHEETOS BOLITAS HB2 110GRX17X1", 5151 ],["PAKETAXO MEZ GD HBSF RS2 70GRX28X1", 5132],
+["SABRITAS SAL MAX HBSF 57GRX26X1", 4925],["CHURRUMAIS FLAMIN HOT REC MB 58GRX36X1", 4912],
+["DORITOS NACHO HBSF2 146GRX15X1", 4871],["CHEETOS TOR COMP HBSF 145GRX14X1", 4836],
+["DORITOS NACHO BOT HBSF2 82GRX25X1", 4812],["DORITOS NACHO FAM HBSF2 223GRX10X1", 4801],
+["DORITOS NCH COMP HB PRA 146GRX15X1", 4753],["CHURRUMAIS OT HB 36GRX56X1", 4700],
+["PAKETAXO QUEXO MB 81GRX23X1", 4662],["CHURRUMAIS LIMON HBSF 70GRX32X1", 4501],
+["FRITOS SAL GU HBSF 70GRX32X1", 4486],["CHEETOS TORCIDITO HB 18GRX80X1", 4453 ],
+["PAKETAXO MEZCLADITO MB 81GRX23X1", 4446],["PAKETAXO MEZ FSTN DSD MB 395GRX5X1", 4442],
+["CHEETOS FH COMP HBSF RS 145GRX14X1", 4434],["TOSTIPACK SV HBSF RS 1425GRX1X1", 4429],
+["RANCHERITOS HBSF HPP 45GRX54X1", 4421],["CHURRUMAIS OT HBSF2 36GRX56X1", 4416],
+["CHURRUMAIS HBSF2 36GRX56X1", 4416],["DORITOS FH FAM HBSF RS 223GRX10X1", 4369],
+["QUESABRITAS FAM HB2 160GRX10X1", 4365],["PAKETAXO MEZ HBSF RS2 170GRX10X1", 4290],
+["FRITOS SAL LIMON HBSF 170GRX13X1", 4259],["PAKETAXO MEZ HBSF RS2 350GRX5X1", 4193],
+["CHEETOS TOR LL2 HBSF 350GRX5X1", 4190],["DORITOS FH HBSF RS 82GRX25X1", 4190],
+["RANCHERITOS BTT HBSF2 RS 86GRX35X1", 4085],["CHEETOS TOR FAM HB PRA 255GRX6X1", 3984],
+["RANCHERITOS HBSF2 RS 58GRX50X1", 3864],["RANCHERITOS HBSF RS 40GRX60X1", 3572],
+["CHURRUMAIS LIMON HB 185GRX15X1", 3501],["RANCHERITOS HBSF RS 350GRX8X1", 3459],
+["SABRITONES HB 160GRX6X1", 3394],["RANCHERITOS FAM HBSF RS 225GRX10X1", 2950],
+["RANCHERITOS HBSF2 RS 145GRX14X1", 2844 ],["SABRITONES HBSF2 RS 60GRX16X1", 2759],
+["RANCHERITOS HPP HBSF RS 72GRX20X1", 2035],["SABRITONES FAM RS HBSF 240GRX4X1", 2033],
+["SABRITONES RS HBSF 160GRX6X1", 1871]
+
+ ];
+
+    const productos = [
+    ["P GRANEL PAPA SAL SF HB", 56.97], ["P GRANEL SABRITAS HABANERO SF HB", 59.43],
+      ["P GRANEL ADOBADAS REVAMP SF HB", 67.53], ["P GRANEL RUFFLES MC S. ARDIENTE SF HB", 129.12],
+      ["P GRANEL RUFFLES MC FLAMIN HOT SF HB", 79.89], ["RUFFLES MC FLAMIN HOT MIX V1 MX", 60.80],
+      ["RECETA CRUJIENTE JALAPENO MX V1", 85.03], ["P GRANEL REC CRUJIENTE FLAMIN HOT BL MX", 81.40],
+      ["DORITOS DINAMITA FLAMIN HOT MX V1", 43.68], ["P GRANEL DORITOS NACHO SF HB P621", 40.88],
+      ["DORITOS FLAMIN HOT MX V1", 30.55], ["P GRANEL DORITOS PIZZEROLA SF HB", 45.53],
+      ["TOSTITOS FLAMIN HOT MX V1", 36.60], ["P GRANEL FRITOS SAL SFHB OR", 34.82],
+      ["P GRANEL CHEETOS TORCIDITOS PW HB", 43.76], ["P GRANEL CHEETOS POFF PKTO QXO WGE MX", 52.68],
+      ["P GRANEL CHEETOS POFFS REVAMP WGE MX", 52.68], ["P GRANEL CHURRUMAIS SF HB OR", 35.32],
+      ["CHURRUMAIS FLAMIN HOT MX V1", 41.46], ["P GRANEL SABRITONES SF SR MX", 29.51],
+      ["P GRANEL DORITO3DS PAKETAXOQXO PW REDSOD", 58.11], ["P GRANEL CRUJITOS PKTAXO QXO PW OR SR MX", 82.35],
+      ["P GRANEL CHEETOS PALOMITAS PXO QXO RSL", 54.20], ["P GRANEL RUFFLES QUESO SF HB SO", 69.14],
+      ["RUFFLES QUESO MIX V1 MX", 69.14], ["WAVY KETTLE SALSA NEGRA MIX MX V1", 81.32],
+      ["DORITOS DINAMITA CHILE LIMON MX V1", 42.53], ["P GRANEL DORITOS INCÓGNITA SF HB", 46.36],
+      ["P GRANEL CRUJITOS QUESO SF OR SR MX", 58.87], ["MEZCLA 74 CANOLA 26 OLEINA IH", 30.21],
+      ["MEZCLA 80 CANOLA 20 OLEINA IH", 30.36], ["P GRANEL SABRITAS CREMA Y ESPECIAS SF HB", 128.70],
+      ["SABRITAS LIMON  MX V01", 72.24], ["SABRITAS SAL RECETA CRUJIENTE V1 MX", 77.93],
+      ["TOSTITOS SALSA VERDE MX V1", 43.05], ["RANCHERITOS MX V1", 18.60],
+      ["TOSTITOS SALSA VERDE MX V1", 43.05], ["CHEETOS XTRA FLAMIN HOT 67 33 MX V1", 39.79],
+      ["P GRANEL CHEETOS BOLITAS REVAMP WGE MX", 44.92], ["RUFFLES SAL MX V01", 66.38],
+      ["P GRANEL SABRITAS CREMA Y ES SF HB IH", 70.81], ["PAPA ORIGINAL MI CARRITO MX V1", 78.73],
+      ["P GRANEL REC CRUJ CHILES ROJOS BL MX", 85.29], ["P GRANEL RANCHERITOS PAKETAXO SF HB", 33.72],
+      ["P GRANEL FRITOS SAL LIMON PAKET SFHB OR", 33.67], ["P GRANEL CHEETOS BOL PKTO MEZC WGE MX", 44.92],
+      ["P GRANEL SABRITON PAKETAXO SF SR MX", 58.96], ["P GRANEL CHEETOS PALOMITAS RSL", 54.20],
+      ["P GRANEL RUFFLES QUESO SF HB", 129.03], ["MI CARRITO PICOSITAS MX V1", 81.03],
+      ["P GRANEL RUFFLES MC JALAPENO SF SR MX", 79.87], ["RUFFLES QUESO MX V01", 82.68],
+      ["P GRANEL TOSTITOS FLAMIN HOT SF HB", 35.92], ["P GRANEL CHEETOS BOLITAS REVAMP", 42.75],
+      ["DORITOS DINAMITA CHILE LIMON MX V2", 39.01], ["P GRANEL DORITO3D PKTAXOQXOSFHB REDSOD", 36.94],
+      ["RANCHERITOS PAKETAXO MX V1", 26.13], ["DORITOS FLAMIN HOT MX V2", 32.28],
+      ["P GRANEL RANCHERITOS SF HB", 33.72]
+      // Puedes seguir agregando más productos...
+      // ... más productos
+    ];
+
+    const modoRadios = document.getElementsByName("modo");
+    const modoTiempo = document.getElementById("modo-tiempo");
+    const modoKg = document.getElementById("modo-kg");
+    const lineaSelect = document.getElementById("linea");
+    const horasInput = document.getElementById("horas");
+    const calcularTiempo = document.getElementById("calcular-tiempo");
+    const filtro = document.getElementById("filtro");
+    const sugerencias = document.getElementById("sugerencias");
+    const factorInput = document.getElementById("factor");
+    const calcularKg = document.getElementById("calcular-kg");
+    const resultadoDiv = document.getElementById("resultado");
+
+    let coincidencias = [];
+    let indiceSeleccionado = -1;
+    let costoSeleccionado = 0;
+
+    modoRadios.forEach(radio => {
+      radio.addEventListener("change", () => {
+        modoRadios.forEach(r => r.parentElement.classList.remove("seleccionado"));
+        radio.parentElement.classList.add("seleccionado");
+
+        if (radio.value === "tiempo") {
+          modoTiempo.style.display = "block";
+          modoKg.style.display = "none";
+        } else {
+          modoKg.style.display = "block";
+          modoTiempo.style.display = "none";
+        }
+        resultadoDiv.textContent = "";
+      });
+    });
+
+    filtro.addEventListener("input", () => {
+      const texto = filtro.value.toLowerCase();
+      sugerencias.innerHTML = "";
+      coincidencias = productos.filter(([nombre]) => nombre.toLowerCase().includes(texto));
+      coincidencias.forEach(([nombre], i) => {
+        const div = document.createElement("div");
+        div.classList.add("sugerencia-item");
+        div.textContent = nombre;
+        div.style.padding = "8px";
+        div.style.cursor = "pointer";
+        div.addEventListener("click", () => seleccionarSugerencia(i));
+        sugerencias.appendChild(div);
+      });
+    });
+
+    function seleccionarSugerencia(index) {
+      const [nombre, costo] = coincidencias[index];
+      filtro.value = nombre;
+      costoSeleccionado = costo;
+      filtro.classList.add("seleccionado");
+      sugerencias.innerHTML = "";
+      sugerencias.classList.add("hidden");
+      indiceSeleccionado = -1;
+    }
+
+    calcularTiempo.addEventListener("click", () => {
+  const horas = parseFloat(horasInput.value);
+  const costoLinea = parseFloat(lineaSelect.value);
+
+  if (!isNaN(horas) && !isNaN(costoLinea)) {
+    const total = horas * costoLinea;
+    const totalFormateado = total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+    resultadoDiv.textContent = `Costo por tiempo de afectación: ${totalFormateado}`;
+  } else {
+    resultadoDiv.textContent = "Por favor ingresa valores válidos.";
+  }
+
+
+      lineaSelect.classList.add("seleccionado");
+    });
+
+  calcularKg.addEventListener("click", () => {
+  const kilos = parseFloat(factorInput.value);
+
+  if (!isNaN(kilos) && !isNaN(costoSeleccionado)) {
+    const total = costoSeleccionado * kilos;
+    const totalFormateado = total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+    resultadoDiv.textContent = `Costo por desperdicio: ${totalFormateado}`;
+  } else {
+    resultadoDiv.textContent = "Por favor ingresa un número válido de kilos y selecciona un producto.";
+  }
+});
+
+    const modoPNC = document.getElementById("modo-pnc");
+const filtroPNC = document.getElementById("filtro-pnc");
+const sugerenciasPNC = document.getElementById("sugerencias-pnc");
+const tarimasInput = document.getElementById("tarimas");
+const calcularPNC = document.getElementById("calcular-pnc");
+
+let coincidenciasPNC = [];
+let costoPNCSeleccionado = 0;
+
+modoRadios.forEach(radio => {
+  radio.addEventListener("change", () => {
+    modoTiempo.style.display = "none";
+    modoKg.style.display = "none";
+    modoPNC.style.display = "none";
+
+    if (radio.value === "tiempo") modoTiempo.style.display = "block";
+    if (radio.value === "kg") modoKg.style.display = "block";
+    if (radio.value === "pnc") modoPNC.style.display = "block";
+
+    resultadoDiv.textContent = "";
+  });
+});
+
+filtroPNC.addEventListener("input", () => {
+  const texto = filtroPNC.value.toLowerCase();
+  sugerenciasPNC.innerHTML = "";
+  coincidenciasPNC = productosPNC.filter(([nombre]) => nombre.toLowerCase().includes(texto));
+  coincidenciasPNC.forEach(([nombre], i) => {
+    const div = document.createElement("div");
+    div.classList.add("sugerencia-item");
+    div.textContent = nombre;
+    div.style.padding = "8px";
+    div.style.cursor = "pointer";
+    div.addEventListener("click", () => {
+      filtroPNC.value = nombre;
+      costoPNCSeleccionado = coincidenciasPNC[i][1];
+      sugerenciasPNC.innerHTML = "";
+    });
+    sugerenciasPNC.appendChild(div);
+  });
+});
+
+calcularPNC.addEventListener("click", () => {
+  const tarimas = parseFloat(tarimasInput.value);
+  if (!isNaN(tarimas) && !isNaN(costoPNCSeleccionado)) {
+    const total = tarimas * costoPNCSeleccionado;
+    const totalFormateado = total.toLocaleString('es-MX', { style: 'currency', currency: 'MXN' });
+    resultadoDiv.textContent = `Costo por PNC: ${totalFormateado}`;
+  } else {
+    resultadoDiv.textContent = "Ingresa un número válido de tarimas y selecciona un producto.";
+  }
+});
+
+    
+  </script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+body {
+    background-image: url(Imagenaes/logo\ centro.bmp);
+    background-attachment: fixed;
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+
+
+}
+
+.bi{
+    position:absolute;
+    top: 85;
+    left: 100;
+    
+}

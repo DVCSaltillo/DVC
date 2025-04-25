@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <title>Exportar PDF</title>
+  <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+</head>
+<body>
+
+  <button onclick="exportarSobrePDF()">Exportar PDF</button>
+
+  <!-- Lista de ejemplo -->
+  <div id="list-Maíz">
+    <div class="task">
+      <input type="text" value="Tarea 1 de ejemplo" />
+      <input class="responsable" type="text" value="Juan Pérez" />
+      <span class="status green"></span>
+    </div>
+    <div class="task">
+      <input type="text" value="Tarea 2 pendiente" />
+      <input class="responsable" type="text" value="" />
+      <span class="status"></span>
+    </div>
+  </div>
+
+  <script>
+    const platforms = ["Maíz"]; // Puedes agregar más plataformas
+
+    async function exportarSobrePDF() {
+      const fecha = new Date().toLocaleDateString();
+      const hora = new Date().toLocaleTimeString();
+
+      try {
+        // 1. Cargar el PDF base
+        const existingPdfBytes = await fetch('Prioridades.pdf').then(res => res.arrayBuffer());
+
+        // 2. Cargar PDF con pdf-lib
+        const pdfDoc = await PDFLib.PDFDocument.load(existingPdfBytes);
+        const helvetica = await pdfDoc.embedFont(PDFLib.StandardFonts.Helvetica);
+        const helveticaBold = await pdfDoc.embedFont(PDFLib.StandardFonts.HelveticaBold);
+
+        const page = pdfDoc.getPages()[0];
+        const { height } = page.getSize();
+        let y = height - 60;
+
+        page.drawText(`Reporte generado el: ${fecha} a las ${hora}`, {
+          x: 50,
+          y: y,
+          size: 12,
+          font: helvetica,
+          color: PDFLib.rgb(0, 0, 0),
+        });
+
+        y -= 30;
+
+        // 3. Recorrer plataformas
+        for (const platform of platforms) {
+          const list = document.getElementById(`list-${platform}`);
+          if (!list) continue;
+
+          const tasks = list.querySelectorAll(".task");
+
+          page.drawText(`Plataforma: ${platform}`, {
+            x: 50,
+            y: y,
+            size: 11,
+            font: helveticaBold,
+          });
+          y -= 15;
+
+          tasks.forEach(task => {
+            const tarea = task.querySelector("input[type='text']").value.trim();
+            const responsable = task.querySelector(".responsable").value.trim() || "Sin responsable";
+            const estado = task.querySelector(".status").classList.contains("green") ? "Realizado" : "Pendiente";
+
+            page.drawText(`• ${tarea} | Resp: ${responsable} | Estado: ${estado}`, {
+              x: 55,
+              y: y,
+              size: 9,
+              font: helvetica,
+            });
+            y -= 12;
+          });
+
+          y -= 10;
+        }
+
+        // 4. Guardar y descargar
+        const pdfBytes = await pdfDoc.save();
+        const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `Reporte_Prioridades_${fecha.replaceAll("/", "-")}.pdf`;
+        link.click();
+
+      } catch (err) {
+        console.error("Error al exportar:", err);
+        alert("Ocurrió un error al generar el PDF.");
+      }
+    }
+  </script>
+</body>
+</html>
